@@ -84,6 +84,7 @@
 
   # global packages
   environment.systemPackages = with pkgs; [
+    git
     wget
     mc
     curl
