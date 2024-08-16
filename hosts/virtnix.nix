@@ -80,6 +80,8 @@
   networking.firewall.enable = false;
   environment.variables.EDITOR = "nvim";
 
+  services.tailscale.enable = true;
+
   fonts = {
     fontDir.enable = true;
 
