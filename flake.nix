@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
 
     anyrun = {
-      url = "github:Kirottu/anyrun";
+      url = "github:anyrun-org/anyrun";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -25,11 +25,11 @@
       system = "x86_64-linux";
       modules = [
         ./hosts/virtnix.nix
-	home-manager.nixosModules.home-manager {
-	  home-manager.useGlobalPkgs = true;
-	  home-manager.useUserPackages = true;
-	  home-manager.users.markus = import ./home/markus/home.nix;
-	}
+          home-manager.nixosModules.home-manager {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.markus = import ./home/markus/home.nix;
+        }
       ];
     };
 
@@ -37,12 +37,14 @@
       system = "x86_64-linux";
       modules = [
         ./hosts/earendil.nix
-	home-manager.nixosModules.home-manager {
-	  home-manager.useGlobalPkgs = true;
-	  home-manager.useUserPackages = true;
-	  home-manager.users.markus = import ./home/markus/home.nix;
-	}
+          home-manager.nixosModules.home-manager {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.markus = import ./home/markus/home.nix;
+        }
       ];
+
+      environment.systemPackages = [ anyrun.packages.${system}.anyrun ];
     };
   };
 }

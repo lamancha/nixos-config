@@ -30,9 +30,16 @@
   # network
   networking.hostName = "earendil"; # Define your hostname.
   networking.networkmanager.enable = true;
-  services.openssh.enable = true;
   networking.firewall.enable = false;
   services.tailscale.enable = true;
+
+  services.openssh = {
+    enable = true;
+    settings = {
+      PermitRootLogin = false;
+      #PassworkAuthentication = false;
+    };
+  };
 
   # pipewire
   hardware.pulseaudio.enable = false;
@@ -79,6 +86,9 @@
     isNormalUser = true;
     description = "markus";
     extraGroups = [ "networkmanager" "wheel" ];
+    openssh.AuthorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMkmLEEft5rCh1lA58aeI0OStmg09w7AsOgf+EKlfj4u markus@bazzite"
+    ];
     #packages = with pkgs; []; # should be done by home-manager
   };
 
@@ -148,12 +158,10 @@
   };
 
   # global installation of compositor
-  services.displayManager.sddm.enable = true;
-  services.displayManager.sddm.wayland.enable = true;
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
-    theme = "catppuccin-mocha";
+    theme = "catppuccin";
   };
   programs.dconf.enable = true;
   programs.hyprland.enable = true;
@@ -166,6 +174,29 @@
       enable = true;
       dockerCompat = true;
       defaultNetwork.settings.dns_enabled = true;
+    };
+  };
+
+  # steam
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true;
+    dedicatedServer.openFirewall = true;
+    gamescopeSession.enable = true;
+    package = pkgs.steam.override {
+      extraPkgs = pkgs:
+        with pkgs; [
+	  xorg.libXcursor
+	  xorg.libXi
+	  xorg.libXinerama
+	  xorg.libXScrnSaver
+	  libpng
+	  libpulseaudio
+	  libvorbis
+	  stdenv.cc.cc.lib
+	  libkrb5
+	  keyutils
+	];
     };
   };
 
