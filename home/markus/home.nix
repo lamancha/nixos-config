@@ -1,10 +1,6 @@
-{ config, pkgs, nixvim, anyrun, ... }:
+{ config, pkgs, lib,... }:
 
 {
-    imports = [
-        nixvim.homeManagerModules.nixvim
-    ];
-
     home.username = "markus";
     home.homeDirectory = "/home/markus";
 
@@ -15,13 +11,19 @@
         catppuccin
         hyprpaper
         wofi
+        #rofi-wayland
         distrobox
         nyancat
         kdePackages.dolphin
         podman-tui
         podman-compose
-        boxbuddy
+        fzf
     ];
+
+    catppuccin = {
+        enable = true;
+        flavor = "mocha";
+    };
 
     home.stateVersion = "24.05";
     programs.home-manager.enable = true;
@@ -93,6 +95,33 @@
         '';
     };
 
+    # add anyrun to inputs/inherit when used
+    #programs.anyrun = {
+    #    enable = true;
+    #    config = {
+    #        plugins = [
+    #            anyrun.packages.${pkgs.system}.applications
+    #            anyrun.packages.${pkgs.system}.rink
+    #            anyrun.packages.${pkgs.system}.websearch
+    #        ];
+    #        x = { fraction = 0.5; };
+    #        y = { fraction = 0.3; };
+    #        width = { fraction = 0.3; };
+    #        hideIcons = false;
+    #        ignoreExclusiveZones = false;
+    #        layer = "overlay";
+    #        showResultsImmediately = true;
+    #    };
+    #};
+
+    programs.rofi = {
+        enable = true;
+        package = pkgs.rofi-wayland;
+        theme = lib.mkForce "android_notification";
+        terminal = "${pkgs.kitty}/bin/kitty";
+        location = "center";
+    };
+
     programs.firefox = {
         enable = true;
         package = pkgs.wrapFirefox pkgs.firefox-unwrapped {
@@ -135,12 +164,47 @@
         };
     };
 
+    programs.hyprlock = {
+        enable = true;
+        settings = {
+            general = {
+                disable_loading_bar = true;
+                grace = 300;
+                hide_cursor = true;
+                no_fade_in = false;
+            };
+
+            background = [
+            {
+                path = "screenshot";
+                blur_passes = 3;
+                blur_size = 8;
+            }
+            ];
+
+            input-field = [
+            {
+                size = "200, 50";
+                position = "0, -80";
+                monitor = "";
+                dots_center = true;
+                fade_on_empty = false;
+                font_color = "rgb(202, 211, 245)";
+                inner_color = "rgb(91, 96, 120)";
+                outer_color = "rgb(24, 25, 38)";
+                outline_thickness = 5;
+                #placeholder_text = '\'Password...'\';
+                shadow_passes = 2;
+            }
+            ];
+        };
+    };
+
     wayland.windowManager.hyprland = {
         enable = true;
         xwayland.enable = true;
         systemd.variables = ["--all"];
         settings = {
-
             env = [
                 "NIXOS_OZONE_WL,1" # for any ozone-based browser & electron apps to run on wayland
                 "MOZ_ENABLE_WAYLAND,1" # for firefox to run on wayland
@@ -200,13 +264,15 @@
             ];
 
             "$mainMod" = "ALT";
-            "$menu" = "wofi --show drun";
+            "$menu" = "rofi -show drun";
             bind = [
                 "$mainMod, Q, exec, kitty"
+                "$mainMod, L, exec, hyprlock"
                 "$mainMod, C, killactive"
                 "$mainMod, M, exit"
                 "$mainMod, V, togglefloating"
-                "$mainMod, R, exec, $menu"
+                "$mainMod, SPACE, exec, $menu"
+                "$mainMod, TAB, exec, rofi -show window"
                 "$mainMod, P, pseudo"
                 "$mainMod, left, movefocus, l"
                 "$mainMod, right, movefocus, r"

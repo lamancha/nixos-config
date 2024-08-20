@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib,... }:
 
 {
     imports =
@@ -12,9 +12,9 @@
     nixpkgs.config.allowUnfree = true;
 
     # Boot
-    # gummiboot
-    boot.loader.systemd-boot.enable = true;
     boot.loader.efi.canTouchEfiVariables = true;
+    # gummiboot
+    #boot.loader.systemd-boot.enable = true;
     # grub
     #boot.loader.grub = {
     #    enable = true;
@@ -22,12 +22,13 @@
     #    copyKernels = true;
     #    devices = [ "nodev" ];
     #};
-
-    boot.plymouth = {
+    # lanzaboote
+    boot.loader.systemd-boot.enable = lib.mkForce false;
+    boot.lanzaboote = {
         enable = true;
-        theme = "breeze";
-        logo = "${pkgs.nixos-icons}/share/icons/hicolor/48x48/apps/nix-snowflake-white.png";
+        pkiBundle = "/etc/secureboot";
     };
+    boot.plymouth.enable = true;
 
     # network
     networking.hostName = "earendil"; # Define your hostname.
@@ -62,6 +63,8 @@
     # other system services
     services.fwupd.enable = true;
     services.printing.enable = true;
+    security.pam.services.hyprlock = {};
+    security.polkit.enable = true;
 
     # Set your time zone.
     time.timeZone = "Europe/London";
@@ -109,10 +112,22 @@
         tmux
         htop
         xdg-desktop-portal-hyprland
-        catppuccin-sddm
-        catppuccin-plymouth
         wofi
+        sbctl
+        hyprland
+        xdg-desktop-portal-hyprland
+        xdg-desktop-portal-gtk
+        xwayland
+        meson
+        wayland-protocols
+        wayland-utils
+        wl-clipboard
+        wlroots
     ];
+    catppuccin = {
+        enable = true;
+        flavor = "mocha";
+    };
 
     # nvim - global
     # nvim config for user in home-manager config (nixvim)
@@ -175,14 +190,42 @@
     };
 
     # global installation of compositor
-    services.displayManager.sddm = {
+    #services.displayManager.sddm = {
+    #    enable = true;
+    #    wayland.enable = true;
+    #    theme = "catppuccin-mocha";
+    #    settings = {
+    #        Autologin = {
+    #            Session = "hyprland";
+    #            User = "markus";
+    #        };
+    #    };
+    #};
+    services.greetd = {
         enable = true;
-        wayland.enable = true;
-        theme = "catppuccin-mocha";
+        #settings = {
+        #    default_session = {
+        #        command = "${pkgs.greetd.greetd}/bin/cage -s -- regreet"
+        #    };
+        #}
+    };
+    programs.regreet = {
+        enable = true;
+        settings = {
+            GTK = {
+                application_prefer_dark_theme = true;
+                theme_name = "Adwaita";
+            };
+#            commands = {
+#                
+#            };
+        };
     };
     programs.dconf.enable = true;
-    programs.hyprland.enable = true;
-    programs.hyprland.xwayland.enable = true;
+    programs.hyprland = {
+        enable = true;
+        xwayland.enable = true;
+    };
 
     # enable container virtualisation (podman)
     virtualisation = {
@@ -218,7 +261,13 @@
 
     # flatpak
     services.flatpak.enable = true;
-    xdg.portal.enable = true;
+    xdg.portal = {
+        enable = true;
+        wlr.enable = true;
+        extraPortals = [
+            pkgs.xdg-desktop-portal-gtk
+        ];
+    };
 
     system.stateVersion = "24.05"; # Did you read the comment?
 
