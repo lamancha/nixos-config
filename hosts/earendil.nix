@@ -112,7 +112,6 @@
         tmux
         htop
         xdg-desktop-portal-hyprland
-        wofi
         sbctl
         hyprland
         xdg-desktop-portal-hyprland

@@ -10,14 +10,14 @@
         kdePackages.polkit-kde-agent-1
         catppuccin
         hyprpaper
-        wofi
-        #rofi-wayland
         distrobox
         nyancat
         kdePackages.dolphin
         podman-tui
         podman-compose
         fzf
+        gh
+        github-desktop
     ];
 
     catppuccin = {
@@ -94,25 +94,6 @@
             # extra .bashrc config goes here
         '';
     };
-
-    # add anyrun to inputs/inherit when used
-    #programs.anyrun = {
-    #    enable = true;
-    #    config = {
-    #        plugins = [
-    #            anyrun.packages.${pkgs.system}.applications
-    #            anyrun.packages.${pkgs.system}.rink
-    #            anyrun.packages.${pkgs.system}.websearch
-    #        ];
-    #        x = { fraction = 0.5; };
-    #        y = { fraction = 0.3; };
-    #        width = { fraction = 0.3; };
-    #        hideIcons = false;
-    #        ignoreExclusiveZones = false;
-    #        layer = "overlay";
-    #        showResultsImmediately = true;
-    #    };
-    #};
 
     programs.rofi = {
         enable = true;
@@ -273,7 +254,7 @@
                 "$mainMod, V, togglefloating"
                 "$mainMod, SPACE, exec, $menu"
                 "$mainMod, TAB, exec, rofi -show window"
-                "$mainMod, P, pseudo"
+                #"$mainMod, P, pseudo"
                 "$mainMod, left, movefocus, l"
                 "$mainMod, right, movefocus, r"
                 "$mainMod, up, movefocus, u"
@@ -292,4 +273,11 @@
             windowrulev2 = "suppressevent maximize, class:.*";
         };
     };
+
+    home.file.test = {
+        enable = false;
+        target = "testconfig/config.test";
+        text = "vim.o.number = true \nvim.o.tabstop = 4\n";
+    };
+
 }
