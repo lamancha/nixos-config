@@ -3,6 +3,7 @@
 
     inputs = {
         nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+        nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
 
         anyrun = {
             url = "github:Kirottu/anyrun";
@@ -32,7 +33,7 @@
         catppuccin.url = "github:catppuccin/nix";
     };
 
-    outputs = { self, nixpkgs, lanzaboote, home-manager, nixvim, catppuccin, anyrun, ... }@inputs: {
+    outputs = { self, nixpkgs, lanzaboote, home-manager, nixvim, catppuccin, anyrun, nixos-wsl, ... }@inputs: {
         nixosConfigurations.virtnix = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
@@ -71,12 +72,35 @@
                                 #anyrun.homeManagerModules.default
                             ];
                         };
-                        #extraSpecialArgs = {
-                        #    inherit anyrun;
-                        #};
                     };
                 }
             ];
         };
+        
+        nixosConfigurations.wslnixos = nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+                nixos-wsl.nixosModules.default {
+                    system.stateVersion = "24.05";
+                    wsl.enable = true;
+                }
+                catppuccin.nixosModules.catppuccin
+                ./hosts/wslnixos.nix
+                home-manager.nixosModules.home-manager {
+                    home-manager = {
+                        useGlobalPkgs = true;
+                        useUserPackages = true;
+                        users.nixos = {
+                            imports = [
+                                ./home/nixos/home.nix
+                                catppuccin.homeManagerModules.catppuccin
+                                nixvim.homeManagerModules.nixvim
+                            ];
+                        };
+                    };
+                }
+            ];
+        };
+        
     };
 }
