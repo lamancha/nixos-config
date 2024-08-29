@@ -58,6 +58,7 @@
             system = "x86_64-linux";
             modules = [
                 lanzaboote.nixosModules.lanzaboote
+                nixvim.nixosModules.nixvim
                 catppuccin.nixosModules.catppuccin
                 ./hosts/earendil.nix
                 home-manager.nixosModules.home-manager {
@@ -69,7 +70,6 @@
                                 ./home/markus/home.nix
                                 catppuccin.homeManagerModules.catppuccin
                                 nixvim.homeManagerModules.nixvim
-                                #anyrun.homeManagerModules.default
                             ];
                         };
                     };

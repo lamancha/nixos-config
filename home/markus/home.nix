@@ -1,6 +1,11 @@
 { config, pkgs, lib,... }:
 
 {
+
+#    imports = [
+#        ../modules/nixvim.nix
+#    ];
+
     home.username = "markus";
     home.homeDirectory = "/home/markus";
 
@@ -8,6 +13,10 @@
         waybar
         mako
         kdePackages.polkit-kde-agent-1
+        kdePackages.kwallet
+        kdePackages.kwalletmanager
+        kwalletcli
+        kdePackages.plasma-browser-integration
         catppuccin
         hyprpaper
         distrobox
@@ -18,6 +27,7 @@
         fzf
         gh
         github-desktop
+        gamemode
     ];
 
     catppuccin = {
@@ -50,43 +60,6 @@
         };
     };
   
-    programs.nixvim = {
-        enable = true;
-        defaultEditor = true;
-        viAlias = true;
-        vimAlias = true;
-        colorschemes.catppuccin = {
-            enable = true;
-            settings.flavour = "mocha" ;
-        };
-        opts = {
-            number = true;
-            shiftwidth = 4;
-            scrolloff = 8;
-            tabstop = 4;
-            expandtab = true;
-            smartindent = true;
-            wrap = false;
-            cursorline = true;
-            syntax = "on";
-        };
-        plugins = {
-            cursorline = {
-                enable = true;
-                cursorline.timeout = null;
-                cursorline.number = true;
-                cursorword.enable = true;
-                cursorword.minLength = 3;
-            };
-        };
-        extraPlugins = with pkgs.vimPlugins; [
-            feline-nvim
-            nvim-scrollbar
-            julia-vim
-        ];
-        extraConfigLua = "require('feline').setup() \n require('scrollbar').setup()";
-    };
-
     programs.bash = {
         enable = true;
         enableCompletion = true;
@@ -97,7 +70,7 @@
 
     programs.rofi = {
         enable = true;
-        package = pkgs.rofi-wayland;
+        #package = pkgs.rofi-wayland;
         theme = lib.mkForce "android_notification";
         terminal = "${pkgs.kitty}/bin/kitty";
         location = "center";
@@ -105,32 +78,85 @@
 
     programs.firefox = {
         enable = true;
+        nativeMessagingHosts = [ pkgs.kdePackages.plasma-browser-integration ];
         package = pkgs.wrapFirefox pkgs.firefox-unwrapped {
+            #override = { pipewireSupport = true; };
             extraPolicies = {
+                AutofillAddressEnabled = false;
+                AutofillCreditCardEnabled = false;
+                FirefoxSuggest = false;
+                OfferToSaveLogins = false;
                 DisableTelemetry = true;
                 DisableAppUpdate = true;
                 DisableFirefoxAccounts = true;
+                DisableAccounts = true;
                 DisableFirefoxScreenshots = true;
                 DisablePasswordReveal = true;
                 DisablePocket = true;
+                DisableFormHistory = true;
                 DontCheckDefaultBrowser = true;
+                EnableTrackingProtection = {
+                    Value = true;
+                    Locked = true;
+                    Cryptomining = true;
+                    Fingerprinting = true;
+                };
                 PasswordManagerEnabled = false;
-                PictureInPicture = false;
+                PictureInPicture = {
+                    Enabled = false;
+                    Locked = true;
+                };
                 PromptForDownloadLocation = true;
+                SearchBar = "unified";
                 ExtensionSettings = {
-                    #"*".installation_mode = "blocked"; # blocks all addons except the ones specified below
+                    "*".installation_mode = "blocked"; # blocks all addons except the ones specified below
                     # uBlock Origin:
                     "uBlock0@raymondhill.net" = {
                         install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
                         installation_mode = "force_installed";
                     };
+                    "78272b6fa58f4a1abaac99321d503a20@proton.me" = {
+                        install_url = "https://addons.mozilla.org/firefox/downloads/latest/proton-pass/latest.xpi";
+                        installation_mode = "force_installed";
+                    };
+                    "plasma-browser-integration@kde.org" = {
+                        install_url = "https://addons.mozilla.org/firefox/downloads/latest/plasma-integration/latest.xpi";
+                        installation_mode = "force_installed";
+                    };
+                    "jid1-BoFifL9Vbdl2zQ@jetpack" = {
+                        install_url = "https://addons.mozilla.org/firefox/downloads/latest/decentraleyes/latest.xpi";
+                        installation_mode = "force_installed";
+                    };
+                    "CanvasBlocker@kkapsner.de" = {
+                        install_url = "https://addons.mozilla.org/firefox/downloads/latest/canvasBlocker/latest.xpi";
+                        installation_mode = "force_installed";
+                    };
+                    "zotero@chnm.gmu.edu" = {
+                        install_url = "https://www.zotero.org/download/connector/dl?browser=firefox&version=5.0.144";
+                        installation_mode = "force_installed";
+                    };
                 };
                 Preferences = { 
                     "browser.contentblocking.category" = { Value = "strict"; Status = "locked"; };
-                    "extensions.pocket.enabled" = "lock-false";
-                    "extensions.screenshots.disabled" = "lock-true";
+                    "extensions.pocket.enabled" = { Value = false; Status = "locked"; };
+                    "extensions.screenshots.disabled" = { Value = true; Status = "locked"; };
+                    "browser.formfill.enable" = { Value = false; Status = "locked"; };
+                    "browser.topsites.contile.enabled" = { Value = false; Status = "locked"; };
+                    "browser.newtabpage.activity-stream.feeds.section.topstories" = { Value = false; Status = "locked"; };
+                    "browser.newtabpage.activity-stream.feeds.snippets" = { Value = false; Status = "locked"; };
+                    "browser.newtabpage.activity-stream.showSponsored" = { Value = false; Status = "locked"; };
+                    "browser.newtabpage.activity-stream.showSponsoredTopSites" = { Value = false; Status = "locked"; };
+                    "browser.newtabpage.activity-stream.system.showSponsored" = { Value = false; Status = "locked"; };
+                    "widget.use-xdg-desktop-portal.file-picker" = "1";
                 };
             };
+        };
+        profiles.default = {
+            isDefault = true;
+            search.default = "DuckDuckGo";
+            search.privateDefault = "DuckDuckGo";
+            search.order = [ "DuckDuckGo" ];
+            search.force = true;
         };
     };
 
@@ -212,7 +238,7 @@
             };
 
             decoration = {
-                rounding = "10";
+                rounding = "3";
 	            active_opacity = "1.0";
 	            inactive_opacity = "0.7";
 	            drop_shadow = true;
@@ -274,10 +300,10 @@
         };
     };
 
-    home.file.test = {
-        enable = false;
-        target = "testconfig/config.test";
-        text = "vim.o.number = true \nvim.o.tabstop = 4\n";
-    };
+#    home.file.test = {
+#        enable = false;
+#        target = "testconfig/config.test";
+#        text = "vim.o.number = true \nvim.o.tabstop = 4\n";
+#    };
 
 }

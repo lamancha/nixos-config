@@ -12,6 +12,7 @@
     nixpkgs.config.allowUnfree = true;
 
     # Boot
+    boot.initrd.kernelModules = [ "amdgpu" ];
     boot.loader.efi.canTouchEfiVariables = true;
     # gummiboot
     #boot.loader.systemd-boot.enable = true;
@@ -29,6 +30,13 @@
         pkiBundle = "/etc/secureboot";
     };
     boot.plymouth.enable = true;
+
+    # gpu
+    hardware.amdgpu.initrd.enable = true;
+    hardware.opengl = {
+        driSupport = true;
+        driSupport32Bit = true;
+    };
 
     # network
     networking.hostName = "earendil"; # Define your hostname.
@@ -65,12 +73,13 @@
     services.printing.enable = true;
     security.pam.services.hyprlock = {};
     security.polkit.enable = true;
+    security.pam.services.markus.kwallet.enable = true;
 
     # Set your time zone.
     time.timeZone = "Europe/London";
 
     # locale
-    i18n.defaultLocale = "de_AT.UTF-8";
+    i18n.defaultLocale = "en_GB.UTF-8";
 
     i18n.extraLocaleSettings = {
         LC_ADDRESS = "en_GB.UTF-8";
@@ -82,10 +91,12 @@
         LC_PAPER = "en_GB.UTF-8";
         LC_TELEPHONE = "en_GB.UTF-8";
         LC_TIME = "en_GB.UTF-8";
+        LC_ALL = "en_GB.UTF-8";
     };
 
     # X11 and console keymap
     services.xserver = {
+        videoDrivers = [ "amdgpu" ];
         xkb.layout = "jp";
         xkb.variant = "";
     };
@@ -110,33 +121,67 @@
         git
         duf
         tmux
+        ntfs3g
         htop
         xdg-desktop-portal-hyprland
         sbctl
         hyprland
         xdg-desktop-portal-hyprland
         xdg-desktop-portal-gtk
+        kdePackages.xdg-desktop-portal-kde
         xwayland
         meson
         wayland-protocols
         wayland-utils
         wl-clipboard
         wlroots
+        kdePackages.qtwayland
+        kdePackages.dolphin
     ];
+
     catppuccin = {
         enable = true;
         flavor = "mocha";
     };
 
     # nvim - global
-    # nvim config for user in home-manager config (nixvim)
-    programs.neovim = {
+    programs.nixvim = {
         enable = true;
         defaultEditor = true;
-        withPython3 = true;
-        vimAlias = true;
         viAlias = true;
+        vimAlias = true;
+        colorschemes.catppuccin = {
+            enable = true;
+            settings.flavour = "mocha" ;
+        };
+        opts = {
+            number = true;
+            shiftwidth = 4;
+            scrolloff = 8;
+            tabstop = 4;
+            expandtab = true;
+            smartindent = true;
+            wrap = false;
+            cursorline = true;
+            syntax = "on";
+        };
+        plugins = {
+            cursorline = {
+                enable = true;
+                cursorline.timeout = null;
+                cursorline.number = true;
+                cursorword.enable = true;
+                cursorword.minLength = 3;
+            };
+        };
+        extraPlugins = with pkgs.vimPlugins; [
+            feline-nvim
+            nvim-scrollbar
+            julia-vim
+        ];
+        extraConfigLua = "require('feline').setup() \n require('scrollbar').setup()";
     };
+
 
     environment.variables = {
         EDITOR = "nvim";
@@ -189,42 +234,45 @@
     };
 
     # global installation of compositor
-    #services.displayManager.sddm = {
+    # sddm
+    services.displayManager.sddm = {
+        enable = true;
+        wayland.enable = true;
+        #theme = "catppuccin-mocha";
+        #settings = {
+        #    Autologin = {
+        #        Session = "hyprland";
+        #        User = "markus";
+        #    };
+        #};
+    };
+    services.displayManager.defaultSession = "plasma";
+
+    # greetd
+    #services.greetd = {
     #    enable = true;
-    #    wayland.enable = true;
-    #    theme = "catppuccin-mocha";
+    #};
+    #programs.regreet = {
+    #    enable = true;
     #    settings = {
-    #        Autologin = {
-    #            Session = "hyprland";
-    #            User = "markus";
+    #        GTK = {
+    #            application_prefer_dark_theme = true;
+    #            theme_name = "Adwaita";
     #        };
     #    };
     #};
-    services.greetd = {
-        enable = true;
-        #settings = {
-        #    default_session = {
-        #        command = "${pkgs.greetd.greetd}/bin/cage -s -- regreet"
-        #    };
-        #}
-    };
-    programs.regreet = {
-        enable = true;
-        settings = {
-            GTK = {
-                application_prefer_dark_theme = true;
-                theme_name = "Adwaita";
-            };
-#            commands = {
-#                
-#            };
-        };
-    };
+
     programs.dconf.enable = true;
-    programs.hyprland = {
+    #programs.hyprland = {
+    #    enable = true;
+    #    xwayland.enable = true;
+    #};
+
+    services.desktopManager.plasma6 = {
         enable = true;
-        xwayland.enable = true;
+        enableQt5Integration = true;
     };
+    programs.xwayland.enable = true;
 
     # enable container virtualisation (podman)
     virtualisation = {
@@ -257,6 +305,7 @@
 	        ];
         };
     };
+    programs.gamescope.enable = true;
 
     # flatpak
     services.flatpak.enable = true;
